@@ -1,8 +1,8 @@
 package nsu.stuctures;
 
-import nsu.VersionControllable;
+import nsu.UndoRedoControllable;
 
-public class PersistenceHashMap<K, V> implements VersionControllable {
+public class PersistenceHashMap<K, V> implements UndoRedoControllable {
     public void size() {
         // todo epov
     }

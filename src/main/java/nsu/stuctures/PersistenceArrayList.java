@@ -1,8 +1,8 @@
 package nsu.stuctures;
 
-import nsu.VersionControllable;
+import nsu.UndoRedoControllable;
 
-public class PersistenceArrayList<T> implements VersionControllable {
+public class PersistenceArrayList<T> implements UndoRedoControllable {
     public void size() {
         // todo Epov
     }
