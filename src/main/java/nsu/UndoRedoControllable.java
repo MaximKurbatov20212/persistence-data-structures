@@ -1,6 +1,6 @@
 package nsu;
 
-public interface VersionControllable {
+public interface UndoRedoControllable {
     void undo();
     void redo();
 }
