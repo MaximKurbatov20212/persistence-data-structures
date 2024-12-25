@@ -16,7 +16,7 @@ public class CloneableValue<T> implements Cloneable {
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof CloneableValue<?> other)) return false;
-        return this.value.equals(other.value);
+        return this.value.equals(other);
     }
 
     @Override

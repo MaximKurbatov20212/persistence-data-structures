@@ -10,7 +10,6 @@ public class TestPersistenceHashMap {
         PersistenceHashMap<CloneableKey<String>, CloneableValue<String>> persistentMap = new PersistenceHashMap<>();
         Assertions.assertEquals(persistentMap.size(), 0);
         Assertions.assertTrue(persistentMap.isEmpty());
-
     }
 
     @Test

@@ -5,14 +5,16 @@ import nsu.UndoRedoControllable;
 import java.util.ArrayList;
 
 public class PersistenceArrayList<T> implements UndoRedoControllable {
-    private ArrayList<ArrayList<T>> versions;
-    private int versionIndex = 0;
+    private final ArrayList<ArrayList<T>> versions;
+    private int versionIndex;
     public PersistenceArrayList() {
         /*
         * так как мы заранее объявили ArrayList<ArrayList<T>>,
         * то jvm знает, сколько памяти нужно выделить под эту коллекцию
         * */
         this.versions = new ArrayList<>();
+        versions.add(new ArrayList<>());
+        versionIndex = 0;
     }
 
     public int size() {
@@ -21,44 +23,67 @@ public class PersistenceArrayList<T> implements UndoRedoControllable {
     public boolean isEmpty() {
         return versions.get(versionIndex).isEmpty();
     }
+
     public void clear() {
-        // todo Epov
+        ArrayList<T> newList = new ArrayList<>();
+        versions.add(newList);
+        versionIndex++;
     }
     public T get(int index) {
         return getCurrentListVersion().get(index);
     }
+
+    public void addLast(T value){
+        ArrayList<T> current = getCurrentListVersion();
+        ArrayList<T> newList = (ArrayList<T>) current.clone();
+
+        try{
+            T cloneValue = (T) value.getClass().getMethod("clone").invoke(value);
+            newList.add(cloneValue);
+            versions.add(newList);
+            versionIndex++;
+        }catch (Exception e){
+            throw new RuntimeException("Добавляемое в конец значение не поддерживает клонирование");
+        }
+    }
+
     public void set(int index, T value) {
         ArrayList<T> currentList = getCurrentListVersion();
         ArrayList<T> newList = (ArrayList<T>) currentList.clone();
 
         try{
             T cloneValue = (T) value.getClass().getMethod("clone").invoke(value);
-            newList.add(cloneValue);
-            versions.set(index, newList);
+            newList.set(index, cloneValue);
+            versions.add(newList);
             versionIndex++;
+        }catch (IndexOutOfBoundsException e){
+            throw new RuntimeException(index + " находится за пределами массива.", e);
         }catch (Exception e){
             throw new RuntimeException("Добавляемое значение в массив не поддерживает клонирование.", e);
         }
     }
 
-    private ArrayList<T> getCurrentListVersion(){
-        return versions.get(versionIndex);
-    }
-
     public void delete(int index) {
-        // todo Epov
+        ArrayList<T> currentList = getCurrentListVersion();
+        ArrayList<T> newList = (ArrayList<T>) currentList.clone();
+        newList.remove(index);
+        versions.add(newList);
+        versionIndex++;
     }
     @Override
     public void undo() {
-        // todo Epov
+        if (versionIndex == 0)
+            return;
+        versionIndex--;
     }
     @Override
     public void redo() {
-        // todo Epov
+        if (versionIndex == (versions.size() - 1))
+            return;
+        versionIndex++;
     }
 
-    public static void main(String[] args) {
-        PersistenceArrayList<String> arrayList = new PersistenceArrayList<>();
-
+    private ArrayList<T> getCurrentListVersion(){
+        return versions.get(versionIndex);
     }
 }
