@@ -8,7 +8,7 @@ import java.util.LinkedList;
 
 @Getter
 public class PersistenceHashMap<T extends Cloneable, V extends Cloneable> implements UndoRedoControllable {
-    private final LinkedList<HashMap<T, V>> maps;
+    private final LinkedList<HashMap<T, V>> maps; // версии
 
     private int currentVersionIndex;
 
