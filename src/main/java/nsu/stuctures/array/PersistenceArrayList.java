@@ -8,10 +8,6 @@ public class PersistenceArrayList<T> implements UndoRedoControllable {
     private final ArrayList<ArrayList<T>> versions;
     private int versionIndex;
     public PersistenceArrayList() {
-        /*
-        * так как мы заранее объявили ArrayList<ArrayList<T>>,
-        * то jvm знает, сколько памяти нужно выделить под эту коллекцию
-        * */
         this.versions = new ArrayList<>();
         versions.add(new ArrayList<>());
         versionIndex = 0;
