@@ -2,7 +2,7 @@ package nsu;
 
 import nsu.stuctures.list.PersistenceLinkedList;
 
-public class Main {
+public class    Main {
     public static void main(String[] args) {
         PersistenceLinkedList<String> persistenceLinkedList = new PersistenceLinkedList<>();
 
