@@ -34,7 +34,7 @@ public class LinkedListFatNode<T> {
         nodes.removeIf(node -> node.getVersionId() == versionId);
     }
 
-    public LinkedListNode<T> getFirstWithNotWithVersion(List<UUID> uuids) {
+    public LinkedListNode<T> getFirstNodeWithVersionOutOfList(List<UUID> uuids) {
         return nodes.stream()
                 .filter(node -> !uuids.contains(node.getVersionId()))
                 .findFirst()

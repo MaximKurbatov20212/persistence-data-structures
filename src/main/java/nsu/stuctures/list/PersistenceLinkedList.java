@@ -157,7 +157,7 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable {
 
     private List<LinkedListNode<T>> getCurrentListVersion() {
         return list.stream()
-                .map(fatNode -> fatNode.getFirstWithNotWithVersion(getAllVersionAfterCurrent()))
+                .map(fatNode -> fatNode.getFirstNodeWithVersionOutOfList(getAllVersionAfterCurrent()))
                 .filter(Objects::nonNull)
                 .filter(node -> !node.isDeleted())
                 .toList();
@@ -165,7 +165,7 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable {
 
     private List<LinkedListNode<T>> getCurrentListVersionWithNulls() {
         return list.stream()
-                .map(fatNode -> fatNode.getFirstWithNotWithVersion(getAllVersionAfterCurrent()))
+                .map(fatNode -> fatNode.getFirstNodeWithVersionOutOfList(getAllVersionAfterCurrent()))
                 .collect(Collectors.toList());
     }
 
