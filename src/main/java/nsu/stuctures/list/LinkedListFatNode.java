@@ -19,13 +19,6 @@ public class LinkedListFatNode<T> {
         addNode(versionId, value, false);
     }
 
-    public LinkedListNode<T> getNodeByVersionId(UUID versionId) {
-        return nodes.stream()
-                .filter(node -> node.getVersionId() == versionId)
-                .findAny()
-                .orElse(null);
-    }
-
     public void addNode(UUID versionId, T value, boolean isDeleted) {
         nodes.addFirst(new LinkedListNode<>(versionId, value, isDeleted));
     }
@@ -37,6 +30,13 @@ public class LinkedListFatNode<T> {
     public LinkedListNode<T> getFirstWithNotWithVersion(List<UUID> uuids) {
         return nodes.stream()
                 .filter(node -> !uuids.contains(node.getVersionId()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public LinkedListNode<T> getFirstNodeWithVersionInList(List<UUID> uuids) {
+        return nodes.stream()
+                .filter(node -> uuids.contains(node.getVersionId()))
                 .findFirst()
                 .orElse(null);
     }

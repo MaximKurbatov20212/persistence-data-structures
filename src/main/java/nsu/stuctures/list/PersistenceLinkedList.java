@@ -11,7 +11,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class PersistenceLinkedList<T> implements UndoRedoControllable {
+public class PersistenceLinkedList<T> implements UndoRedoControllable<PersistenceLinkedList<T>> {
 
     private LinkedList<LinkedListFatNode<T>> list;
     private List<UUID> versions;
@@ -24,6 +24,14 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable {
         currentVersionIndex = 0;
     }
 
+    private PersistenceLinkedList(PersistenceLinkedList<T> other) {
+        list = other.list;
+        currentVersionIndex = other.currentVersionIndex;
+
+        versions = new LinkedList<>();
+        versions.addAll(other.versions);
+    }
+
     public int size() {
         return getCurrentListVersion().size();
     }
@@ -32,7 +40,8 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable {
         return getCurrentListVersion().isEmpty();
     }
 
-    public void clear() {
+    public PersistenceLinkedList<T> clear() {
+        PersistenceLinkedList<T> oldList = new PersistenceLinkedList<>(this);
         deleteUnreachableVersions();
 
         UUID newVersion = java.util.UUID.randomUUID();
@@ -48,9 +57,11 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable {
         versions.add(newVersion);
 
         setCurrentVersionIndexToLastVersion();
+        return oldList;
     }
 
-    public void push_back(T value) {
+    public PersistenceLinkedList<T> pushBack(T value) {
+        PersistenceLinkedList<T> oldList = new PersistenceLinkedList<>(this);
         deleteUnreachableVersions();
 
         List<LinkedListNode<T>> currentList = getCurrentListVersionWithNulls();
@@ -68,9 +79,12 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable {
         );
 
         setCurrentVersionIndexToLastVersion();
+
+        return oldList;
     }
 
-    public void push_front(T value) {
+    public PersistenceLinkedList<T> pushFront(T value) {
+        PersistenceLinkedList<T> oldList = new PersistenceLinkedList<>(this);
         deleteUnreachableVersions();
 
         List<LinkedListNode<T>> currentList = getCurrentListVersionWithNulls();
@@ -88,6 +102,8 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable {
         );
 
         setCurrentVersionIndexToLastVersion();
+
+        return oldList;
     }
 
     public T back() {
@@ -111,35 +127,31 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable {
     }
 
     @Override
-    public void undo() {
+    public PersistenceLinkedList<T> undo() {
+        PersistenceLinkedList<T> oldList = new PersistenceLinkedList<>(this);
         if (currentVersionIndex == 0) {
-            return;
+            return this;
         }
         currentVersionIndex--;
+        return oldList;
     }
 
     @Override
-    public void redo() {
+    public PersistenceLinkedList<T> redo() {
+        PersistenceLinkedList<T> oldList = new PersistenceLinkedList<>(this);
         if (currentVersionIndex == (versions.size() - 1)) {
-            return;
+            return this;
         }
         currentVersionIndex++;
+        return oldList;
     }
 
-    public void printCurrentLinkedList() {
-        System.out.println("[" + getCurrentListVersion().stream()
-                .filter(n -> !n.isDeleted())
-                .map(n -> String.valueOf(n.getValue()))
-                .collect(Collectors.joining(", ")) + "]"
-        );
-    }
 
     private void deleteUnreachableVersions() {
         List<UUID> unreachableVersions = getAllNextVersion();
         
         unreachableVersions.forEach(this::deleteVersion);
         list.removeIf(fatNode -> fatNode.getNodes().isEmpty());
-
         versions = getAllPreviousVersions();
     }
 
@@ -155,9 +167,17 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable {
         list.forEach(fatNode -> fatNode.deleteNodeByVersionId(versionId));
     }
 
+//    private List<LinkedListNode<T>> getCurrentListVersion() {
+//        return list.stream()
+//                .map(fatNode -> fatNode.getFirstWithNotWithVersion(getAllVersionAfterCurrent()))
+//                .filter(Objects::nonNull)
+//                .filter(node -> !node.isDeleted())
+//                .toList();
+//    }
+
     private List<LinkedListNode<T>> getCurrentListVersion() {
         return list.stream()
-                .map(fatNode -> fatNode.getFirstWithNotWithVersion(getAllVersionAfterCurrent()))
+                .map(fatNode -> fatNode.getFirstNodeWithVersionInList(getAllPreviousVersions()))
                 .filter(Objects::nonNull)
                 .filter(node -> !node.isDeleted())
                 .toList();
@@ -181,5 +201,13 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable {
         return getCurrentListVersion().stream()
                 .map(LinkedListNode::getValue)
                 .collect(Collectors.toList());
+    }
+
+    public void printCurrentLinkedList() {
+        System.out.println("[" + getCurrentListVersion().stream()
+                .filter(n -> !n.isDeleted())
+                .map(n -> String.valueOf(n.getValue()))
+                .collect(Collectors.joining(", ")) + "]"
+        );
     }
 }
