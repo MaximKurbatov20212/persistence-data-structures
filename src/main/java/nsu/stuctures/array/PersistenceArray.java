@@ -17,18 +17,15 @@ public class PersistenceArray<T> implements UndoRedoControllable {
     this.currentVersionIndex = 0;
   }
 
-  public int size(){return getCurrentArray().size();}
+  public int size(){
+    return getCurrentArray().size();
+  }
 
-  public boolean isEmpty(){return fatNodeArray.isEmpty();}
+  public boolean isEmpty(){return getCurrentArray().isEmpty();}
 
   public T get(int index){
-    ArrayFatNode<T> fatNode = fatNodeArray.get(index);
-    UUID currentVersion = getCurrentVersion();
-
-    if (fatNode.contain(currentVersion))
-      return fatNode.getNodeByVersion(currentVersion).getValue();
-
-    return fatNode.getFirst().getValue();
+    List<ArrayNode<T>> array = getCurrentArray();
+    return array.get(index).getValue();
   }
 
   public void addLast(T element){
@@ -45,9 +42,9 @@ public class PersistenceArray<T> implements UndoRedoControllable {
     nodeVersions.add(id);
     try{
       ArrayFatNode<T> buf = fatNodeArray.get(index);
-      buf.getNodes().add(new ArrayNode<>(id, value));
+      buf.addFirst(new ArrayNode<>(id, value));
     }catch (IndexOutOfBoundsException e){
-      throw new RuntimeException("Вы изменяете элемент, которого нет в массиве. "
+      throw new RuntimeException("Вы изменяете элемент, которого нет в массиве."
               + "\nIndex = " + index
               + "\nТекущая длина массива = " + size());
     }
@@ -69,7 +66,6 @@ public class PersistenceArray<T> implements UndoRedoControllable {
     currentVersionIndex++;
   }
 
-  //Private zone------------------------------------------------------------
   private List<ArrayNode<T>> getCurrentArray(){
     List<UUID> versionsAfterCurrant = getAllVersionsAfterCurrent();
     return fatNodeArray.stream()
@@ -80,10 +76,6 @@ public class PersistenceArray<T> implements UndoRedoControllable {
 
   private List<UUID> getAllVersionsAfterCurrent(){
     return nodeVersions.subList(currentVersionIndex + 1, nodeVersions.size());
-  }
-
-  private UUID getCurrentVersion() {
-    return nodeVersions.get(nodeVersions.size() - 1);
   }
 
   private UUID getNewId(){

@@ -22,7 +22,10 @@ public class ArrayFatNode<T> {
   }
 
   public boolean contain(UUID currentVersion){
-    return nodes.stream().filter(e -> e.getVersionId() == currentVersion).findFirst().orElse(null) != null;
+    return nodes.stream()
+            .filter(e -> e.getVersionId() == currentVersion)
+            .findFirst()
+            .orElse(null) != null;
   }
 
   public ArrayNode<T> getNodeByVersion(UUID uuid){
@@ -31,6 +34,10 @@ public class ArrayFatNode<T> {
 
   public ArrayNode<T> getFirst() {
     return nodes.get(0);
+  }
+
+  public void addFirst(ArrayNode<T> element){
+    nodes.add(0, element);
   }
 
   public void deleteNodeByVersionId(UUID versionId) {
