@@ -167,14 +167,6 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable<Persistenc
         list.forEach(fatNode -> fatNode.deleteNodeByVersionId(versionId));
     }
 
-//    private List<LinkedListNode<T>> getCurrentListVersion() {
-//        return list.stream()
-//                .map(fatNode -> fatNode.getFirstWithNotWithVersion(getAllVersionAfterCurrent()))
-//                .filter(Objects::nonNull)
-//                .filter(node -> !node.isDeleted())
-//                .toList();
-//    }
-
     private List<LinkedListNode<T>> getCurrentListVersion() {
         return list.stream()
                 .map(fatNode -> fatNode.getFirstNodeWithVersionInList(getAllPreviousVersions()))
@@ -185,7 +177,7 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable<Persistenc
 
     private List<LinkedListNode<T>> getCurrentListVersionWithNulls() {
         return list.stream()
-                .map(fatNode -> fatNode.getFirstWithNotWithVersion(getAllVersionAfterCurrent()))
+                .map(fatNode -> fatNode.getFirstNodeWithVersionInList(getAllVersionAfterCurrent()))
                 .collect(Collectors.toList());
     }
 
