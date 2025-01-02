@@ -1,6 +1,6 @@
 package nsu;
 
-public interface UndoRedoControllable {
-    void undo();
-    void redo();
+public interface UndoRedoControllable<T> {
+    T undo();
+    T redo();
 }

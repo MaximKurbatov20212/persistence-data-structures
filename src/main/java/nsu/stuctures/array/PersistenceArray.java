@@ -3,79 +3,111 @@ package nsu.stuctures.array;
 import nsu.UndoRedoControllable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
-public class PersistenceArray<T> implements UndoRedoControllable {
+public class PersistenceArray<T> implements UndoRedoControllable<PersistenceArray<T>> {
   private final List<ArrayFatNode<T>> fatNodeArray;
   private List<UUID> nodeVersions;
   private int currentVersionIndex;
 
-  public PersistenceArray(){
+  public PersistenceArray() {
     final UUID id = java.util.UUID.randomUUID();
     this.fatNodeArray = new ArrayList<>();
     this.nodeVersions = new LinkedList<>(Collections.singletonList(id));
     this.currentVersionIndex = 0;
   }
 
-  public int size(){
+  private PersistenceArray(PersistenceArray<T> other) {
+    fatNodeArray = other.fatNodeArray;
+    currentVersionIndex = other.currentVersionIndex;
+
+    nodeVersions = new LinkedList<>();
+    nodeVersions.addAll(other.nodeVersions);
+  }
+
+  public int size() {
     return getCurrentArray().size();
   }
 
-  public boolean isEmpty(){return getCurrentArray().isEmpty();}
+  public boolean isEmpty() {
+    return getCurrentArray().isEmpty();
+  }
 
   public T get(int index){
     List<ArrayNode<T>> array = getCurrentArray();
     return array.get(index).getValue();
   }
 
-  public void addLast(T element){
+  public PersistenceArray<T> addLast(T element) {
+    PersistenceArray<T> oldArray = new PersistenceArray<>(this);
     deleteUnreachableVersions();
+
     UUID id = getNewId();
+
     nodeVersions.add(id);
     fatNodeArray.add(new ArrayFatNode<>(id, element));
-    currentVersionIndex++;
+    setCurrentVersionIndexToLastVersion();
+
+    return oldArray;
   }
 
-  public void change(int index, T value){
+  public PersistenceArray<T> change(int index, T value){
+    PersistenceArray<T> oldArray = new PersistenceArray<>(this);
     deleteUnreachableVersions();
+
     UUID id = getNewId();
     nodeVersions.add(id);
-    try{
+    try {
       ArrayFatNode<T> buf = fatNodeArray.get(index);
       buf.addFirst(new ArrayNode<>(id, value));
-    }catch (IndexOutOfBoundsException e){
+    } catch (IndexOutOfBoundsException e){
       throw new RuntimeException("Вы изменяете элемент, которого нет в массиве."
               + "\nIndex = " + index
               + "\nТекущая длина массива = " + size());
     }
-    currentVersionIndex++;
+
+    setCurrentVersionIndexToLastVersion();
+    return oldArray;
   }
 
   @Override
-  public void undo() {
-    if (currentVersionIndex == 0)
-      return;
+  public PersistenceArray<T> undo() {
+    PersistenceArray<T> oldArray = new PersistenceArray<>(this);
+    if (currentVersionIndex == 0) {
+      return this;
+    }
     currentVersionIndex--;
+    return oldArray;
   }
-
 
   @Override
-  public void redo() {
-    if (currentVersionIndex == (nodeVersions.size()) - 1)
-      return;
+  public PersistenceArray<T> redo() {
+    PersistenceArray<T> oldArray = new PersistenceArray<>(this);
+    if (currentVersionIndex == (nodeVersions.size()) - 1) {
+      return this;
+    }
     currentVersionIndex++;
+    return oldArray;
   }
 
-  private List<ArrayNode<T>> getCurrentArray(){
-    List<UUID> versionsAfterCurrant = getAllVersionsAfterCurrent();
+   private ArrayList<ArrayNode<T>> getCurrentArray(){
+    List<UUID> previousVersions = getAllPreviousVersions();
+
     return fatNodeArray.stream()
-            .map(fatNode -> fatNode.getFirstNodeWithVersionOutOfList(versionsAfterCurrant))
+            .map(fatNode -> fatNode.getFirstNodeWithVersionInList(previousVersions))
             .filter(Objects::nonNull)
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
   }
 
-  private List<UUID> getAllVersionsAfterCurrent(){
-    return nodeVersions.subList(currentVersionIndex + 1, nodeVersions.size());
+  public ArrayList<T> getCurrentArrayList() {
+    List<UUID> previousVersions = getAllPreviousVersions();
+
+    return fatNodeArray.stream()
+            .map(fatNode -> fatNode.getFirstNodeWithVersionInList(previousVersions))
+            .filter(Objects::nonNull)
+            .map(ArrayNode::getValue)
+            .collect(Collectors.toCollection(ArrayList::new));
   }
 
   private UUID getNewId(){
@@ -96,7 +128,10 @@ public class PersistenceArray<T> implements UndoRedoControllable {
 
   private void deleteVersionInFatNodeArray(UUID versionId){
     fatNodeArray.forEach(fatNode -> fatNode.deleteNodeByVersionId(versionId));
+  }
 
+  private void setCurrentVersionIndexToLastVersion() {
+    currentVersionIndex = nodeVersions.size() - 1;
   }
 
   private List<UUID> getAllNextVersion() {
