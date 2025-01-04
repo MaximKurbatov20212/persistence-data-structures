@@ -2,7 +2,17 @@ import nsu.stuctures.array.PersistenceArray;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 public class TestNewPersistenceArray {
+
+  <T> boolean isEqual(List<T> listOne, List<T> listTwo) {
+    return listOne.stream()
+            .filter(element -> !listTwo.contains(element))
+            .toList()
+            .isEmpty();
+  }
+
   @Test
   void testSize(){
     PersistenceArray<String> array = new PersistenceArray<>();
@@ -96,4 +106,22 @@ public class TestNewPersistenceArray {
     Assertions.assertEquals("pop", array.get(1));
     Assertions.assertNotEquals("2", array.get(1));
   }
+
+  @Test
+  void addLast_AfterUndo_oldListHasOwnVersions() {
+    PersistenceArray<Integer> arrayList = new PersistenceArray<>();
+    arrayList.addLast(1);
+    arrayList.addLast(2);
+    arrayList.addLast(3);
+
+    PersistenceArray<Integer> oldList = arrayList.undo();
+    Assertions.assertTrue(isEqual(oldList.getCurrentArrayList(), List.of(1, 2, 3)));
+    Assertions.assertTrue(isEqual(arrayList.getCurrentArrayList(), List.of(1, 2)));
+
+    arrayList.addLast(4);
+
+    Assertions.assertTrue(isEqual(oldList.getCurrentArrayList(), List.of(1, 2, 3)));
+  }
+
+
 }
