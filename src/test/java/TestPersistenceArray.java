@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-public class TestNewPersistenceArray {
+public class TestPersistenceArray {
 
   <T> boolean isEqual(List<T> listOne, List<T> listTwo) {
     return listOne.stream()

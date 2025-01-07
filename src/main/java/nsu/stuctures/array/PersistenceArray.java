@@ -39,12 +39,12 @@ public class PersistenceArray<T> implements UndoRedoControllable<PersistenceArra
     return array.get(index).getValue();
   }
 
-    public void delete(int index){
-        List<UUID> versionList = getNodeVersions(index);
-        versionList.forEach(uuid -> nodeVersions.remove(uuid));
-        fatNodeArray.remove(index);
-        currentVersionIndex -= versionList.size();
-    }
+  public void delete(int index){
+      List<UUID> versionList = getNodeVersions(index);
+      versionList.forEach(uuid -> nodeVersions.remove(uuid));
+      fatNodeArray.remove(index);
+      currentVersionIndex -= versionList.size();
+  }
 
   private List<UUID> getNodeVersions(int index) {
     ArrayFatNode<T> node = fatNodeArray.get(index);
@@ -53,7 +53,7 @@ public class PersistenceArray<T> implements UndoRedoControllable<PersistenceArra
     return ids;
   }
 
-    public PersistenceArray<T> addLast(T element) {
+  public PersistenceArray<T> addLast(T element) {
     PersistenceArray<T> oldArray = new PersistenceArray<>(this);
     deleteUnreachableVersions();
 
@@ -72,6 +72,7 @@ public class PersistenceArray<T> implements UndoRedoControllable<PersistenceArra
 
     UUID id = getNewId();
     nodeVersions.add(id);
+
     try {
       ArrayFatNode<T> buf = fatNodeArray.get(index);
       buf.addFirst(new ArrayNode<>(id, value));
