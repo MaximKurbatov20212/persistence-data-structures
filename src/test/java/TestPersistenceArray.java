@@ -27,16 +27,16 @@ public class TestNewPersistenceArray {
 
   @Test
   void testUndo(){
-    PersistenceArray<String> array2 = new PersistenceArray<>();
-    array2.addLast("1");
-    array2.addLast("2");
-    array2.addLast("3");
+    PersistenceArray<String> array = new PersistenceArray<>();
+    array.addLast("1");
+    array.addLast("2");
+    array.addLast("3");
 
-    array2.change(1, "ch1");
-    array2.change(1, "ch2");
+    array.change(1, "ch1");
+    array.change(1, "ch2");
 
-    array2.undo();
-    Assertions.assertEquals(3, array2.size());
+    array.undo();
+    Assertions.assertEquals(3, array.size());
   }
 
   @Test
@@ -123,5 +123,15 @@ public class TestNewPersistenceArray {
     Assertions.assertTrue(isEqual(oldList.getCurrentArrayList(), List.of(1, 2, 3)));
   }
 
+  @Test
+  void testDelete(){
+    PersistenceArray<String> array = new PersistenceArray<>();
+    array.addLast("1");
+    array.addLast("2");
+    array.addLast("3");
+    array.change(1, "pop");
 
+    array.delete(1);
+    Assertions.assertEquals(2, array.size());
+  }
 }
