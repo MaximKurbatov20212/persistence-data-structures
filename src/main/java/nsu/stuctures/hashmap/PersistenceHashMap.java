@@ -1,90 +1,128 @@
 package nsu.stuctures.hashmap;
 
-import lombok.Getter;
+
 import nsu.UndoRedoControllable;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 
-@Getter
-public class PersistenceHashMap<T extends Cloneable, V extends Cloneable> implements UndoRedoControllable {
-    private final LinkedList<HashMap<T, V>> maps; // версии
-
+public class PersistenceHashMap<T> implements UndoRedoControllable<PersistenceHashMap<T>> {
+    private List<HashMapFatNode<T>> list;
+    private final List<HashMapVersion> versions;
     private int currentVersionIndex;
+    private int capacity = 10;
 
     public PersistenceHashMap() {
-        maps = new LinkedList<>();
-        maps.add(new HashMap<>());
+        final UUID id = java.util.UUID.randomUUID();
+        list = new LinkedList<>();
+
+        for (int i = 0; i < capacity; i++) {
+            list.add(new HashMapFatNode<>());
+        }
+
+        versions = new LinkedList<>(Collections.singletonList(new HashMapVersion(id, 0)));
         currentVersionIndex = 0;
     }
 
+    public PersistenceHashMap(PersistenceHashMap<T> other) {
+        this.capacity = other.capacity;
+        this.list = other.list;
+
+        versions = new LinkedList<>();
+        versions.addAll(other.versions);
+
+        currentVersionIndex = other.currentVersionIndex;
+    }
+
     public int size() {
-        return getCurrentHashMapVersion().size();
+        return versions.get(currentVersionIndex).getSize();
     }
 
     public boolean isEmpty() {
-        return getCurrentHashMapVersion().isEmpty();
+        return versions.get(currentVersionIndex).size == 0;
     }
 
-    public void clear() {
-        deleteUnreachableVersion();
-        maps.add(new HashMap<>());
-        setCurrentVersionIndexToLastVersion();
-    }
+    public PersistenceHashMap<T> put(String key, T value) {
+        PersistenceHashMap<T> oldMap = new PersistenceHashMap<>(this);
+        final UUID id = UUID.randomUUID();
 
-    public void put(T key, V value) {
-        deleteUnreachableVersion();
-        HashMap<T, V> currentHashMap = getCurrentHashMapVersion();
-        HashMap<T, V> newHashMap = (HashMap<T, V>) currentHashMap.clone();
-
-        try {
-            T clonedKey = (T) key.getClass().getMethod("clone").invoke(key);
-            V clonedValue = (V) value.getClass().getMethod("clone").invoke(value);
-            newHashMap.put(clonedKey, clonedValue);
-        } catch (Exception e) {
-            throw new RuntimeException("Ключ или значение не поддерживает клонирование", e);
+        if ((double) getCurrentHashMapSize() / capacity > 0.75) {
+             resize();
         }
 
-        maps.add(newHashMap);
+        int hash = hash(key, capacity);
+        HashMapFatNode<T> targetFatNode = list.get(hash);
+
+        boolean isUniqueKey = targetFatNode.addNode(new HashMapNode<>(id, value, key, false));
+
+        if (isUniqueKey) {
+            versions.add(new HashMapVersion(id, getCurrentHashMapSize() + 1));
+        }
 
         setCurrentVersionIndexToLastVersion();
+        return oldMap;
     }
 
-    public V get(T key) {
-        return getCurrentHashMapVersion().get(key);
+    public T get(String key) {
+        int hash = hash(key, capacity);
+        HashMapFatNode<T> targetFatNode = list.get(hash);
+        return targetFatNode.get(key, versions.subList(0, currentVersionIndex + 1));
     }
 
-    public boolean contains(T key) {
-        return getCurrentHashMapVersion().containsKey(key);
+    public boolean contains(String key) {
+        return get(key) != null;
     }
 
-    private HashMap<T, V> getCurrentHashMapVersion() {
-        return maps.get(currentVersionIndex);
-    }
-
-    private void deleteUnreachableVersion() {
-        for (int i = currentVersionIndex + 1; i < maps.size(); i++) {
-            maps.remove(maps.get(i));
+    @Override
+    public PersistenceHashMap<T> undo() {
+        PersistenceHashMap<T> oldMap = new PersistenceHashMap<>(this);
+        if (currentVersionIndex == 0) {
+            return this;
         }
+        currentVersionIndex--;
+        return oldMap;
+    }
+
+    @Override
+    public PersistenceHashMap<T> redo() {
+        PersistenceHashMap<T> oldMap = new PersistenceHashMap<>(this);
+        if (currentVersionIndex == (versions.size() - 1)) {
+            return this;
+        }
+        currentVersionIndex++;
+        return oldMap;
+    }
+
+    private int getCurrentHashMapSize() {
+        return versions.get(currentVersionIndex).size;
+    }
+
+    int hash(String key, int capacity) {
+        return key.hashCode() % capacity;
     }
 
     private void setCurrentVersionIndexToLastVersion() {
-        currentVersionIndex = maps.size() - 1;
+        currentVersionIndex = versions.size() - 1;
     }
 
-    @Override
-    public void undo() {
-        if (currentVersionIndex == 0) {
-            return;
-        }
-        currentVersionIndex--;
-    }
+    private void resize() {
+        capacity *= 2;
+        final List<HashMapFatNode<T>> newList = new LinkedList<>();
 
-    @Override
-    public void redo() {
-        if (currentVersionIndex == (maps.size() - 1)) {
-            return;
+        for (int i = 0; i < capacity; i++) {
+            newList.add(new HashMapFatNode<>());
         }
-        currentVersionIndex++;
+
+        for (HashMapFatNode<T> fatNode: list) {
+            for (HashMapNode<T> node : fatNode.getNodes()) {
+                int hash = hash(node.getKey(), capacity);
+                HashMapFatNode<T> targetFatNode = newList.get(hash);
+                targetFatNode.addNode(node);
+            }
+        }
+
+        this.list = newList;
     }
 }

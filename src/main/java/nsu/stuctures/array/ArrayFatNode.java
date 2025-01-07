@@ -21,21 +21,6 @@ public class ArrayFatNode<T> {
     nodes.add(new ArrayNode<>(id, value));
   }
 
-  public boolean contain(UUID currentVersion){
-    return nodes.stream()
-            .filter(e -> e.getVersionId() == currentVersion)
-            .findFirst()
-            .orElse(null) != null;
-  }
-
-  public ArrayNode<T> getNodeByVersion(UUID uuid){
-    return nodes.stream().filter(e -> e.getVersionId() == uuid).findFirst().orElse(null);
-  }
-
-  public ArrayNode<T> getFirst() {
-    return nodes.get(0);
-  }
-
   public void addFirst(ArrayNode<T> element){
     nodes.add(0, element);
   }
@@ -44,9 +29,9 @@ public class ArrayFatNode<T> {
     nodes.removeIf(node -> node.getVersionId() == versionId);
   }
 
-  public ArrayNode<T> getFirstNodeWithVersionOutOfList(List<UUID> uuids){
+  public ArrayNode<T> getFirstNodeWithVersionInList(List<UUID> uuids){
     return nodes.stream()
-            .filter(fatNode -> !uuids.contains(fatNode.getVersionId()))
+            .filter(fatNode -> uuids.contains(fatNode.getVersionId()))
             .findFirst()
             .orElse(null);
   }

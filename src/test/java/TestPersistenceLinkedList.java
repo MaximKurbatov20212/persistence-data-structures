@@ -22,37 +22,37 @@ public class TestPersistenceLinkedList {
     @Test
     void testPushBack() {
         PersistenceLinkedList<Integer> linkedList = new PersistenceLinkedList<>();
-        linkedList.push_back(1);
+        linkedList.pushBack(1);
 
         Assertions.assertEquals(linkedList.size(), 1);
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(1)));
 
-        linkedList.push_back(2);
+        linkedList.pushBack(2);
         Assertions.assertEquals(linkedList.size(), 2);
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(1, 2)));
 
-        linkedList.push_back(3);
-        linkedList.push_back(4);
-        linkedList.push_back(5);
-        Assertions.assertEquals(linkedList.size(), 5);
+        linkedList.pushBack(3);
+        linkedList.pushBack(4);
+        linkedList.pushBack(5);
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(1, 2, 3, 4, 5)));
+        Assertions.assertEquals(linkedList.size(), 5);
     }
 
     @Test
     void testPushFront() {
         PersistenceLinkedList<Integer> linkedList = new PersistenceLinkedList<>();
-        linkedList.push_front(1);
+        linkedList.pushFront(1);
 
         Assertions.assertEquals(linkedList.size(), 1);
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(1)));
 
-        linkedList.push_front(2);
+        linkedList.pushFront(2);
         Assertions.assertEquals(linkedList.size(), 2);
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(2, 1)));
 
-        linkedList.push_front(3);
-        linkedList.push_front(4);
-        linkedList.push_front(5);
+        linkedList.pushFront(3);
+        linkedList.pushFront(4);
+        linkedList.pushFront(5);
         Assertions.assertEquals(linkedList.size(), 5);
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(5, 4, 3, 2, 1)));
     }
@@ -60,30 +60,30 @@ public class TestPersistenceLinkedList {
     @Test
     void testBack() {
         PersistenceLinkedList<Integer> linkedList = new PersistenceLinkedList<>();
-        linkedList.push_back(1);
+        linkedList.pushBack(1);
         Assertions.assertEquals(linkedList.back(), 1);
 
-        linkedList.push_back(2);
+        linkedList.pushBack(2);
         Assertions.assertEquals(linkedList.back(), 2);
 
-        linkedList.push_back(3);
-        linkedList.push_back(4);
-        linkedList.push_back(5);
+        linkedList.pushBack(3);
+        linkedList.pushBack(4);
+        linkedList.pushBack(5);
         Assertions.assertEquals(linkedList.back(), 5);
     }
 
     @Test
     void testFront() {
         PersistenceLinkedList<Integer> linkedList = new PersistenceLinkedList<>();
-        linkedList.push_front(1);
+        linkedList.pushFront(1);
         Assertions.assertEquals(linkedList.front(), 1);
 
-        linkedList.push_front(2);
+        linkedList.pushFront(2);
         Assertions.assertEquals(linkedList.front(), 2);
 
-        linkedList.push_front(3);
-        linkedList.push_front(4);
-        linkedList.push_front(5);
+        linkedList.pushFront(3);
+        linkedList.pushFront(4);
+        linkedList.pushFront(5);
         Assertions.assertEquals(linkedList.front(), 5);
     }
 
@@ -94,10 +94,10 @@ public class TestPersistenceLinkedList {
         linkedList.clear();
         Assertions.assertEquals(linkedList.size(), 0);
 
-        linkedList.push_back(1);
-        linkedList.push_back(2);
-        linkedList.push_back(3);
-        linkedList.push_back(4);
+        linkedList.pushBack(1);
+        linkedList.pushBack(2);
+        linkedList.pushBack(3);
+        linkedList.pushBack(4);
         Assertions.assertEquals(linkedList.size(), 4);
 
         linkedList.clear();
@@ -108,13 +108,12 @@ public class TestPersistenceLinkedList {
     @Test
     void testUndo() {
         PersistenceLinkedList<Integer> linkedList = new PersistenceLinkedList<>();
-        linkedList.push_back(1);
-        linkedList.push_back(2);
+        linkedList.pushBack(1);
+        linkedList.pushBack(2);
         linkedList.undo();
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(1)));
 
-
-        linkedList.push_front(0);
+        linkedList.pushFront(0);
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(0, 1)));
 
         linkedList.undo();
@@ -128,18 +127,18 @@ public class TestPersistenceLinkedList {
     @Test
     void testRedo() {
         PersistenceLinkedList<Integer> linkedList = new PersistenceLinkedList<>();
-        linkedList.push_back(1);
-        linkedList.push_back(2);
-        linkedList.push_back(3);
-        linkedList.push_back(4);
-        linkedList.push_back(5);
+        linkedList.pushBack(1);
+        linkedList.pushBack(2);
+        linkedList.pushBack(3);
+        linkedList.pushBack(4);
+        linkedList.pushBack(5);
         linkedList.undo();
         linkedList.undo();
         linkedList.undo();
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(1, 2)));
 
-        linkedList.push_back(-1);
-        linkedList.push_back(-2);
+        linkedList.pushBack(-1);
+        linkedList.pushBack(-2);
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(1, 2, -1, -2)));
 
         linkedList.undo();
@@ -151,7 +150,6 @@ public class TestPersistenceLinkedList {
 
         linkedList.undo();
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of()));
-
 
         linkedList.redo();
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(1)));
@@ -167,6 +165,22 @@ public class TestPersistenceLinkedList {
 
         linkedList.redo();
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(1, 2, -1, -2)));
+    }
+
+    @Test
+    void pushBack_AfterUndo_oldListHasOwnVersions() {
+        PersistenceLinkedList<Integer> linkedList = new PersistenceLinkedList<>();
+        linkedList.pushBack(1);
+        linkedList.pushBack(2);
+        linkedList.pushBack(3);
+
+        PersistenceLinkedList<Integer> oldList = linkedList.undo();
+        Assertions.assertTrue(isEqual(oldList.getLinkedList(), List.of(1, 2, 3)));
+        Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(1, 2)));
+
+        linkedList.pushBack(4);
+
+        Assertions.assertTrue(isEqual(oldList.getLinkedList(), List.of(1, 2, 3)));
     }
 }
 

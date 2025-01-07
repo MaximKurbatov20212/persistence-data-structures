@@ -6,9 +6,9 @@ public class Main {
     public static void main(String[] args) {
         PersistenceLinkedList<String> persistenceLinkedList = new PersistenceLinkedList<>();
 
-        persistenceLinkedList.push_back("first");
+        persistenceLinkedList.pushBack("first");
         persistenceLinkedList.printCurrentLinkedList();
-        persistenceLinkedList.push_back("second");
+        persistenceLinkedList.pushBack("second");
         persistenceLinkedList.printCurrentLinkedList();
 
         persistenceLinkedList.clear();
@@ -18,9 +18,9 @@ public class Main {
         persistenceLinkedList.redo();
         persistenceLinkedList.printCurrentLinkedList();
 
-        persistenceLinkedList.push_back("first");
+        persistenceLinkedList.pushBack("first");
         persistenceLinkedList.printCurrentLinkedList();
-        persistenceLinkedList.push_back("second");
+        persistenceLinkedList.pushBack("second");
         persistenceLinkedList.printCurrentLinkedList();
 
 //        persistenceLinkedList.undo();
