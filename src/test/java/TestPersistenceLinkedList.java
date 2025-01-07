@@ -34,8 +34,8 @@ public class TestPersistenceLinkedList {
         linkedList.pushBack(3);
         linkedList.pushBack(4);
         linkedList.pushBack(5);
-        Assertions.assertEquals(linkedList.size(), 5);
         Assertions.assertTrue(isEqual(linkedList.getLinkedList(), List.of(1, 2, 3, 4, 5)));
+        Assertions.assertEquals(linkedList.size(), 5);
     }
 
     @Test

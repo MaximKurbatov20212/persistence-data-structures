@@ -32,15 +32,20 @@ public class HashMapFatNode<T> {
         return true;
     }
 
-    public T get(String key) {
+    public T get(String key, List<HashMapVersion> targetVersions) {
         HashMapNode<T> targetNode = nodes.stream()
-                .filter(node -> Objects.equals(node.getKey(), key))
+                .filter(node -> Objects.equals(node.getKey(), key) && contains(targetVersions, node.getVersionId()))
                 .findFirst()
                 .orElse(null);
 
         if (targetNode == null) {
             return null;
         }
+
         return targetNode.getValue();
+    }
+
+    private boolean contains(List<HashMapVersion> list, UUID id) {
+        return list.stream().anyMatch(node -> node.id == id);
     }
 }

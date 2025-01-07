@@ -33,6 +33,7 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable<Persistenc
     }
 
     public int size() {
+        var l = getCurrentListVersion();
         return getCurrentListVersion().size();
     }
 
@@ -149,7 +150,6 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable<Persistenc
 
     private void deleteUnreachableVersions() {
         List<UUID> unreachableVersions = getAllNextVersion();
-        
         unreachableVersions.forEach(this::deleteVersion);
         list.removeIf(fatNode -> fatNode.getNodes().isEmpty());
         versions = getAllPreviousVersions();
@@ -172,12 +172,12 @@ public class PersistenceLinkedList<T> implements UndoRedoControllable<Persistenc
                 .map(fatNode -> fatNode.getFirstNodeWithVersionInList(getAllPreviousVersions()))
                 .filter(Objects::nonNull)
                 .filter(node -> !node.isDeleted())
-                .collect(Collectors.toCollection(LinkedList::new));
+                .collect(Collectors.toList());
     }
 
     private List<LinkedListNode<T>> getCurrentListVersionWithNulls() {
         return list.stream()
-                .map(fatNode -> fatNode.getFirstNodeWithVersionInList(getAllVersionAfterCurrent()))
+                .map(fatNode -> fatNode.getFirstNodeWithVersionInList(getAllPreviousVersions()))
                 .collect(Collectors.toList());
     }
 
